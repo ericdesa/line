@@ -2,8 +2,7 @@ import { TimeEvent } from "./time-event";
 
 export class TaskTime {
 
-    public dateStart: Date;
-    public dateEnd: Date;
+    public date: Date;
     public events: TimeEvent[] = [];
 
 }

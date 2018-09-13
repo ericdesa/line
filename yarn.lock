@@ -6466,6 +6466,10 @@ term-size@^1.2.0:
   dependencies:
     execa "^0.7.0"
 
+three-orbitcontrols@^2.96.1:
+  version "2.96.1"
+  resolved "https://registry.yarnpkg.com/three-orbitcontrols/-/three-orbitcontrols-2.96.1.tgz#9a19c86ab2486cc80f80eb3e3e932d931e7d1339"
+
 three@^0.96.0:
   version "0.96.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.96.0.tgz#6f48bb9e321506906ae4708bda69b0ffa808ee7f"
