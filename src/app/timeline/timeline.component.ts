@@ -1,3 +1,4 @@
+import { ProjectService } from './../services/project.service';
 import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 
 import { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
@@ -32,7 +33,9 @@ export class TimelineComponent implements OnInit {
 
   @ViewChild('container') container: ElementRef;
 
-  constructor(public renderer2: Renderer2) { }
+  constructor(public renderer2: Renderer2, public projectService: ProjectService) {
+
+  }
 
   ngOnInit() {
     this.init();
