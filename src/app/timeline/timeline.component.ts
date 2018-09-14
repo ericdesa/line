@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import * as OrbitControls from 'three-orbitcontrols';
 import dat from 'dat.gui'
 
+import { SvgIcon } from '../../assets/icon/svg-icon';
+
 @Component({
     selector: 'app-timeline',
     templateUrl: './timeline.component.html',
@@ -17,7 +19,7 @@ export class TimelineComponent implements OnInit {
     public scene: Scene;
     public camera: Camera;
     public particle: THREE.Object3D;
-
+    public SvgIcon = SvgIcon;
     protected gui: dat.GUI;
 
     public curveTension = 0;
@@ -36,6 +38,19 @@ export class TimelineComponent implements OnInit {
         this.setupParticles();
         this.setupCurve();
         this.animate();
+
+
+
+        this.renderer.autoClear = false;
+        let composer = new THREE.EffectComposer(this.renderer);
+        var sunRenderModel = new THREE.RenderPass(this.scene, this.camera);
+        var effectBloom = new THREE.BloomPass(1, 25, 5);
+        var sceneRenderModel = new THREE.RenderPass(this.scene, this.camera);
+        var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+        effectCopy.renderToScreen = true;
+        composer.addPass(sunRenderModel);
+        composer.addPass(effectBloom);
+        composer.addPass(effectCopy);
     }
 
     public setupDatGui() {
@@ -62,9 +77,9 @@ export class TimelineComponent implements OnInit {
 
         let width = window.innerWidth;
         let height = window.innerHeight;
-        //this.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, 1, 1000000000);
-        this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
-        this.camera.position.set(2000, 0, 1000);
+        this.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, 1, 1000000000);
+        //this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
+        //this.camera.position.set(200, 0, 1000);
 
         this.scene.add(this.camera);
 
@@ -91,7 +106,6 @@ export class TimelineComponent implements OnInit {
         /*******
          * debug meshs
          *********/
-
         let planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000);
         planeGeometry.rotateX(- Math.PI / 2);
         let planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2 });
@@ -100,7 +114,6 @@ export class TimelineComponent implements OnInit {
         plane.position.y = -200;
         plane.receiveShadow = true;
         this.scene.add(plane);
-
 
         /*******
          * Grid
@@ -112,10 +125,11 @@ export class TimelineComponent implements OnInit {
         grid.material.transparent = true;
         this.scene.add(grid);
 
+        /*
         let axes = new THREE.AxesHelper(1000);
         axes.position.set(- 500, - 500, - 500);
         this.scene.add(axes);
-
+        */
 
         /*******
          * Controls
@@ -181,9 +195,9 @@ export class TimelineComponent implements OnInit {
         lineGeometry.vertices = points2;
 
         let lineMaterial = new THREE.LineBasicMaterial({
-            color: 0x00ff00,
+            color: 0xffffff,
             opacity: 0.35,
-            linewidth: 3
+            linewidth: 5
         });
 
         this.line = new THREE.Line(lineGeometry, lineMaterial);
@@ -213,7 +227,7 @@ export class TimelineComponent implements OnInit {
     }
 
     public render() {
-        this.renderer.clear();
+        //this.renderer.clear();
 
         this.particle.rotation.y -= 0.0008;
 

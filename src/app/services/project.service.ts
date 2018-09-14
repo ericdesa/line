@@ -17,7 +17,7 @@ export class ProjectService {
     let positions: THREE.Vector3[] = [];
 
     let y = 0;
-    let lineSize = 30;
+    let lineSize = 50;
 
     this.projects.forEach((project) => {
 

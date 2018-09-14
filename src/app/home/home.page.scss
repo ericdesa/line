@@ -1,6 +1,7 @@
 
 :host {
     background: linear-gradient(to bottom,  #5f2c82 0%,#49a09d 100%);
+    font-family: helvetica;
 
     ion-content {
         background: transparent;
@@ -11,7 +12,10 @@
     }
 
     ion-footer {
+        padding: 8px;
+        font-size: 10px;
         background-color: #ffffff;
         color: rgba(0, 0, 0, 0.6);
+        box-shadow: 0px -3px 11px 0px rgba(0, 0, 0, 0.08);
     }
 }
