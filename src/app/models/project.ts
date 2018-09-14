@@ -1,6 +1,6 @@
 import { Task } from "./task";
 import { TaskTime } from "./task-time";
-import { TimeEventType, TimeEvent } from "./time-event";
+import { TimeEventType } from "./time-event";
 
 export class Project {
 
@@ -15,36 +15,31 @@ export class Project {
         let lgt = new Project("LGT");
         projects.push(lgt);
 
+
+        let day = 60 * 60 * 24 * 1000;
+
         // paris
         let lgtParis = new Task("Paris", new Date("06/15/2018"), 28);
         lgt.tasks.push(lgtParis);
 
         let startDate: Date = new Date("02/01/2018");
-        console.log(startDate);
-        debugger
+
         for (let i = 0; i <= 100; i++) {
-            let start = new Date(startDate.getTime() + i * 60 * 60 * 24);
 
             let timeStart = new TaskTime();
-            timeStart.date = start;
+            timeStart.date = new Date(startDate.getTime() + day * i);
             lgtParis.times.push(timeStart);
 
             if (i === 0 || i === 51) {
-                let event = new TimeEvent(TimeEventType.On);
-                timeStart.events.push(event);
+                timeStart.type = TimeEventType.On;
             }
 
-
-            let end = new Date(start);
-            end.setDate(start.getTime() + Math.random() * 5 * 60 * 60);
-
             let timeEnd = new TaskTime();
-            timeEnd.date = start;
+            timeEnd.date = new Date(timeStart.date.getTime() + Math.random() * 5 * 60 * 60);
             lgtParis.times.push(timeEnd);
 
             if (i === 50 || i === 100) {
-                let event = new TimeEvent(TimeEventType.Off);
-                timeEnd.events.push(event);
+                timeEnd.type = TimeEventType.Off;
             }
         }
 
@@ -54,28 +49,21 @@ export class Project {
 
         startDate = new Date("06/15/2018");
         for (let i = 0; i <= 10; i++) {
-            let start = new Date(startDate.getTime() + i * 60 * 60 * 24);
-
             let timeStart = new TaskTime();
-            timeStart.date = start;
+            timeStart.date = new Date(startDate.getTime() + day * i);
             lgtLondon.times.push(timeStart);
 
             if (i === 0 || i === 5) {
-                let event = new TimeEvent(TimeEventType.On);
-                timeStart.events.push(event);
+                timeStart.type = TimeEventType.On;
             }
 
 
-            let end = new Date(start);
-            end.setDate(start.getTime() + Math.random() * 5 * 60 * 60);
-
             let timeEnd = new TaskTime();
-            timeEnd.date = start;
+            timeEnd.date = new Date(timeStart.date.getTime() + Math.random() * 5 * 60 * 60);
             lgtLondon.times.push(timeEnd);
 
             if (i === 4 || i === 10) {
-                let event = new TimeEvent(TimeEventType.Off);
-                timeEnd.events.push(event);
+                timeEnd.type = TimeEventType.Off;
             }
         }
 
@@ -85,28 +73,21 @@ export class Project {
 
         startDate = new Date("07/15/2018");
         for (let i = 0; i <= 15; i++) {
-            let start = new Date(startDate.getTime() + i * 60 * 60 * 24);
-
             let timeStart = new TaskTime();
-            timeStart.date = start;
+            timeStart.date = new Date(startDate.getTime() + day * i);
             lgtMontmartre.times.push(timeStart);
 
             if (i === 0 || i === 6) {
-                let event = new TimeEvent(TimeEventType.On);
-                timeStart.events.push(event);
+                timeStart.type = TimeEventType.On;
             }
 
 
-            let end = new Date(start);
-            end.setDate(start.getTime() + Math.random() * 5 * 60 * 60);
-
             let timeEnd = new TaskTime();
-            timeEnd.date = start;
+            timeEnd.date = new Date(timeStart.date.getTime() + Math.random() * 5 * 60 * 60);
             lgtMontmartre.times.push(timeEnd);
 
             if (i === 5 || i === 15) {
-                let event = new TimeEvent(TimeEventType.Off);
-                timeEnd.events.push(event);
+                timeEnd.type = TimeEventType.Off;
             }
         }
 

@@ -1,8 +1,9 @@
-import { TimeEvent } from "./time-event";
+import { TimeEventType } from "./time-event";
 
 export class TaskTime {
 
     public date: Date;
-    public events: TimeEvent[] = [];
+    public type: TimeEventType;
+    public comment: string;
 
 }

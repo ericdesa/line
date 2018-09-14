@@ -1,7 +1,7 @@
 import { ProjectService } from './../services/project.service';
 import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 
-import { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Camera } from 'three';
 import * as THREE from 'three';
 import * as OrbitControls from 'three-orbitcontrols';
 
@@ -15,7 +15,7 @@ export class TimelineComponent implements OnInit {
 
   public renderer: WebGLRenderer;
   public scene: Scene;
-  public camera: PerspectiveCamera;
+  public camera: Camera;
   public particle: THREE.Object3D;
 
   public ARC_SEGMENTS = 10;
@@ -50,8 +50,11 @@ export class TimelineComponent implements OnInit {
 
     this.scene = new THREE.Scene();
 
-    this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
-    this.camera.position.set(0, 250, 1000);
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    this.camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, 1, 1000000000);
+    //this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
+    //this.camera.position.set(0, 250, 1000);
     this.scene.add(this.camera);
 
 
@@ -92,11 +95,11 @@ export class TimelineComponent implements OnInit {
      * Grid
      *********/
 
-    var helper = new THREE.GridHelper(2000, 100);
-    helper.position.y = - 199;
-    helper.material.opacity = 0.25;
-    helper.material.transparent = true;
-    this.scene.add(helper);
+    var grid = new THREE.GridHelper(2000, 100);
+    grid.position.y = 0;
+    grid.material.opacity = 0.25;
+    grid.material.transparent = true;
+    this.scene.add(grid);
 
     var axes = new THREE.AxesHelper(1000);
     axes.position.set(- 500, - 500, - 500);
@@ -136,21 +139,18 @@ export class TimelineComponent implements OnInit {
 
 
     var lineGeometry = new THREE.BufferGeometry();
-    lineGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(this.ARC_SEGMENTS * 3), 3));
+    lineGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(this.ARC_SEGMENTS * positions.length), 3));
 
-    let curve: any = new THREE.CatmullRomCurve3(positions);
-    curve.curveType = 'centripetal';
-    curve.mesh = new THREE.Line(lineGeometry.clone(), new THREE.LineBasicMaterial({
+    let spline: any = new THREE.CatmullRomCurve3(positions);
+    spline.curveType = 'centripetal';
+    spline.mesh = new THREE.Line(lineGeometry.clone(), new THREE.LineBasicMaterial({
       color: 0x00ff00,
       opacity: 0.35,
       linewidth: 2
     }));
-    curve.mesh.castShadow = true;
-    this.spline = curve;
-    this.scene.add(curve.mesh);
+    this.spline = spline;
+    this.scene.add(spline.mesh);
 
-
-    var spline: any = this.spline;
 
     var position = spline.mesh.geometry.attributes.position;
 
@@ -163,6 +163,26 @@ export class TimelineComponent implements OnInit {
     }
 
     position.needsUpdate = true;
+
+
+    /*******
+     * tags
+     *********/
+
+    var sprite = new THREE.TextureLoader().load('assets/disc.png');
+    var vertices = [];
+    positions.forEach((position) => {
+      vertices.push(position.x, position.y, position.z);
+    });
+
+    var tagGeometry = new THREE.BufferGeometry();
+    tagGeometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+    let spriteMaterial = new THREE.PointsMaterial({ size: 10, sizeAttenuation: true, map: sprite, alphaTest: 0.5, transparent: true });
+    spriteMaterial.color.setHSL(1.0, 1.0, 1.0);
+
+    var particles = new THREE.Points(tagGeometry, spriteMaterial);
+    this.scene.add(particles);
 
 
     /*******

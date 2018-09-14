@@ -7,13 +7,3 @@ export enum TimeEventType {
     Work,
 }
 
-export class TimeEvent {
-
-    public dateStart: Date;
-    public dateEnd: Date;
-
-    constructor(public type: TimeEventType = TimeEventType.Work, public text?: string) {
-
-    }
-
-}
