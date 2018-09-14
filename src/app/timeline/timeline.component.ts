@@ -37,22 +37,14 @@ export class TimelineComponent implements OnInit {
   public init() {
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf0f0f0);
 
-    this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-    this.camera.far = 9999;
-    this.camera.near = 0;
+    this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
     this.camera.position.set(0, 250, 1000);
     this.scene.add(this.camera);
 
     this.scene.add(new THREE.AmbientLight(0xf0f0f0));
     var light = new THREE.SpotLight(0xffffff, 1.5);
     light.position.set(0, 1500, 200);
-    light.castShadow = true;
-    light.shadow = new THREE.SpotLightShadow(new THREE.PerspectiveCamera(70, 1, 200, 2000));
-    light.shadow.bias = -0.000222;
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
     this.scene.add(light);
     this.spotlight = light;
 
@@ -75,10 +67,10 @@ export class TimelineComponent implements OnInit {
     axes.position.set(- 500, - 500, - 500);
     this.scene.add(axes);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.setClearColor(0x000000, 0.0);
 
     this.renderer2.appendChild(this.container.nativeElement, this.renderer.domElement);
 
@@ -141,6 +133,7 @@ export class TimelineComponent implements OnInit {
   }
 
   public render() {
+    this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
   }
 

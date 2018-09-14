@@ -1,1 +1,12 @@
 
+:host {
+    background: linear-gradient(to bottom,  #11e8bb 0%,#8200c9 100%);
+
+    ion-content {
+        background: transparent;
+        
+        canvas {
+            background: transparent;
+        }
+    }
+}
