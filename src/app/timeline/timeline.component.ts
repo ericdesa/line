@@ -16,8 +16,8 @@ export class TimelineComponent implements OnInit {
   public renderer: WebGLRenderer;
   public scene: Scene;
   public camera: PerspectiveCamera;
+  public particle: THREE.Object3D;
 
-  public spotlight: THREE.SpotLight;
   public ARC_SEGMENTS = 10;
 
   public spline: THREE.CatmullRomCurve3;
@@ -36,17 +36,47 @@ export class TimelineComponent implements OnInit {
 
   public init() {
 
+    /*******
+     * Setup scene
+     *********/
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setClearColor(0x000000, 0.0);
+
+    this.renderer2.appendChild(this.container.nativeElement, this.renderer.domElement);
+
+
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000000000);
     this.camera.position.set(0, 250, 1000);
     this.scene.add(this.camera);
 
-    this.scene.add(new THREE.AmbientLight(0xf0f0f0));
-    var light = new THREE.SpotLight(0xffffff, 1.5);
-    light.position.set(0, 1500, 200);
-    this.scene.add(light);
-    this.spotlight = light;
+
+    /*******
+     * Lights
+     *********/
+
+    var ambientLight = new THREE.AmbientLight(0x999999);
+    this.scene.add(ambientLight);
+
+    var lights = [];
+    lights[0] = new THREE.DirectionalLight(0xffffff, 1);
+    lights[0].position.set(1, 0, 0);
+    lights[1] = new THREE.DirectionalLight(0x11E8BB, 1);
+    lights[1].position.set(0.75, 1, 0.5);
+    lights[2] = new THREE.DirectionalLight(0x8200C9, 1);
+    lights[2].position.set(-0.75, -1, 0.5);
+    this.scene.add(lights[0]);
+    this.scene.add(lights[1]);
+    this.scene.add(lights[2]);
+
+
+    /*******
+     * debug meshs
+     *********/
 
     var planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000);
     planeGeometry.rotateX(- Math.PI / 2);
@@ -56,6 +86,11 @@ export class TimelineComponent implements OnInit {
     plane.position.y = -200;
     plane.receiveShadow = true;
     this.scene.add(plane);
+
+
+    /*******
+     * Grid
+     *********/
 
     var helper = new THREE.GridHelper(2000, 100);
     helper.position.y = - 199;
@@ -67,12 +102,30 @@ export class TimelineComponent implements OnInit {
     axes.position.set(- 500, - 500, - 500);
     this.scene.add(axes);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x000000, 0.0);
 
-    this.renderer2.appendChild(this.container.nativeElement, this.renderer.domElement);
+
+    /*******
+     * Particles
+     *********/
+
+    this.particle = new THREE.Object3D();
+    this.scene.add(this.particle);
+
+    var material = new THREE.MeshPhongMaterial({
+      color: 0xffffff,
+      shading: THREE.FlatShading
+    } as any);
+
+    var particleGeometry = new THREE.TetrahedronGeometry(2, 0);
+
+    for (var i = 0; i < 250; i++) {
+      var mesh = new THREE.Mesh(particleGeometry, material);
+      mesh.position.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+      mesh.position.multiplyScalar(90 + (Math.random() * 700));
+      mesh.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+      this.particle.add(mesh);
+    }
+
 
 
     /*******
@@ -82,12 +135,12 @@ export class TimelineComponent implements OnInit {
     let positions = this.projectService.getPositions();
 
 
-    var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(this.ARC_SEGMENTS * 3), 3));
+    var lineGeometry = new THREE.BufferGeometry();
+    lineGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(this.ARC_SEGMENTS * 3), 3));
 
     let curve: any = new THREE.CatmullRomCurve3(positions);
     curve.curveType = 'centripetal';
-    curve.mesh = new THREE.Line(geometry.clone(), new THREE.LineBasicMaterial({
+    curve.mesh = new THREE.Line(lineGeometry.clone(), new THREE.LineBasicMaterial({
       color: 0x00ff00,
       opacity: 0.35,
       linewidth: 2
@@ -112,14 +165,9 @@ export class TimelineComponent implements OnInit {
     position.needsUpdate = true;
 
 
-
-
-
-
-    console.log(this.camera, this.renderer.domElement);
-    debugger
-
-    // Controls
+    /*******
+     * Controls
+     *********/
 
     let controls = new OrbitControls(this.camera, this.renderer.domElement);
     controls.damping = 0.2;
@@ -134,6 +182,9 @@ export class TimelineComponent implements OnInit {
 
   public render() {
     this.renderer.clear();
+
+    this.particle.rotation.y -= 0.0008;
+
     this.renderer.render(this.scene, this.camera);
   }
 
