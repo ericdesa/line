@@ -26,6 +26,7 @@
     "@ionic/angular": "4.0.0-beta.7",
     "@types/three": "^0.92.18",
     "core-js": "^2.5.3",
+    "dat.gui": "^0.7.2",
     "ionic": "^4.1.2",
     "rxjs": "6.2.2",
     "three": "^0.96.0",

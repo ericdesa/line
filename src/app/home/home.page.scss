@@ -1,6 +1,6 @@
 
 :host {
-    background: linear-gradient(to bottom,  #11e8bb 0%,#8200c9 100%);
+    background: linear-gradient(to bottom,  #5f2c82 0%,#49a09d 100%);
 
     ion-content {
         background: transparent;
@@ -8,5 +8,10 @@
         canvas {
             background: transparent;
         }
+    }
+
+    ion-footer {
+        background-color: #ffffff;
+        color: rgba(0, 0, 0, 0.6);
     }
 }

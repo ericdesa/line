@@ -17,18 +17,22 @@ export class ProjectService {
     let positions: THREE.Vector3[] = [];
 
     let y = 0;
-    let lineSize = 200;
+    let lineSize = 30;
 
     this.projects.forEach((project) => {
 
-      y -= lineSize;
+      y += lineSize;
       project.tasks.forEach((task) => {
 
         task.times.forEach((time) => {
-          positions.push(new THREE.Vector3(time.date.getTime(), (time.type === TimeEventType.Off) ? 0 : y, 0));
+          if (time.type === TimeEventType.Off) {
+            positions.push(new THREE.Vector3(time.date.getTime(), 0, 0));
+          } else {
+            positions.push(new THREE.Vector3(time.date.getTime(), y, 0));
+          }
         });
 
-        y -= lineSize;
+        y += lineSize;
       })
     });
 
