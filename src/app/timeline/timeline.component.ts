@@ -3,8 +3,6 @@ import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/co
 
 import dat from 'dat.gui'
 
-import { SvgIcon } from '../../assets/icon/svg-icon';
-
 import * as d3 from 'd3';
  
 
@@ -15,7 +13,15 @@ import * as d3 from 'd3';
 })
 export class TimelineComponent implements OnInit {
 
-    public SvgIcon = SvgIcon;
+    protected pointsGroup: any;
+    protected xScale: any;
+    protected xAxis: any;
+    protected xAxisGroup: any;
+
+    protected yScale: any;
+    protected yAxis: any;
+    protected yAxisGroup: any;
+
     protected gui: dat.GUI;
 
     @ViewChild('container') container: ElementRef;
@@ -27,6 +33,7 @@ export class TimelineComponent implements OnInit {
     ngOnInit() {
         this.setupDatGui();
         this.setupChart();
+        this.reloadData();
     }
 
     public setupDatGui() {
@@ -39,8 +46,7 @@ export class TimelineComponent implements OnInit {
         const width = 960;
         const height = 480;
         
-        let svg = d3.select('app-timeline')
-            .append('svg')
+        let svg = d3.select('app-timeline svg')
             .attr('width', width)
             .attr('height', height);
 
@@ -62,48 +68,52 @@ export class TimelineComponent implements OnInit {
 
 
         // x axis
-        let xScale = d3.scaleTime()
+        this.xScale = d3.scaleTime()
             .range([0, plotWidth]);
 
-        let xAxis = d3.axisBottom(xScale);
-        let xAxisGroup = plotGroup.append('g')
+        this.xAxis = d3.axisBottom(this.xScale);
+        this.xAxisGroup = plotGroup.append('g')
             .classed('x', true)
             .classed('axis', true)
             .attr('transform', `translate(${0},${plotHeight})`)
-            .call(xAxis);
+            .call(this.xAxis);
 
 
         // y axis
-        let yScale = d3.scaleLinear()
+        this.yScale = d3.scaleLinear()
             .range([plotHeight, 0]);
 
-        let yAxis = d3.axisLeft(yScale);
-        let yAxisGroup = plotGroup.append('g')
+        this.yAxis = d3.axisLeft(this.yScale);
+        this.yAxisGroup = plotGroup.append('g')
             .classed('y', true)
             .classed('axis', true)
-            .call(yAxis);
+            .call(this.yAxis);
 
 
         // points
-        let pointsGroup = plotGroup.append('g')
+        this.pointsGroup = plotGroup.append('g')
             .classed('points', true);
+    }
 
+    protected reloadData() {
+        // data
         let prepared = new Array(15).fill(0).map(() => {
             return {
                 date: this.randomDate(new Date(2012, 0, 1), new Date()),
                 score: Math.floor(Math.random()*500)
             }
         }); 
-        
-        xScale.domain(d3.extent(prepared, d => d.date)).nice();
-        xAxisGroup.call(xAxis);
-        
-        yScale.domain(d3.extent(prepared, d => d.score)).nice();
-        yAxisGroup.call(yAxis);
 
-
-        var dataBound = pointsGroup.selectAll('.post').data(prepared);
-        console.log(dataBound);
+        console.log(prepared);
+        
+        // axis
+        this.xScale.domain(d3.extent(prepared, d => d.date)).nice();
+        this.xAxisGroup.transition().call(this.xAxis);
+        
+        this.yScale.domain(d3.extent(prepared, d => d.score)).nice();
+        this.yAxisGroup.transition().call(this.yAxis);
+        
+        var dataBound = this.pointsGroup.selectAll('.post').data(prepared);
     
         // delete extra points
         dataBound
@@ -118,7 +128,8 @@ export class TimelineComponent implements OnInit {
     
         // update all existing points
         enterSelection.merge(dataBound)
-            .attr('transform', (d, i) => `translate(${xScale(d.date)}, ${yScale(d.score)})`);
+		    .transition()
+            .attr('transform', (d, i) => `translate(${this.xScale(d.date)}, ${this.yScale(d.score)})`);
 
         enterSelection.append('circle')
             .attr('r', 2)
@@ -129,4 +140,8 @@ export class TimelineComponent implements OnInit {
         return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
     }
     
+    public reloadHandler() {
+        this.reloadData();
+    }
 }
+ 
