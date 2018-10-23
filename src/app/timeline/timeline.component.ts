@@ -5,6 +5,9 @@ import dat from 'dat.gui'
 
 import { SvgIcon } from '../../assets/icon/svg-icon';
 
+import * as d3 from 'd3';
+ 
+
 @Component({
     selector: 'app-timeline',
     templateUrl: './timeline.component.html',
@@ -23,6 +26,7 @@ export class TimelineComponent implements OnInit {
 
     ngOnInit() {
         this.setupDatGui();
+        console.log(d3.select('body'));
     }
 
     public setupDatGui() {
