@@ -50,7 +50,6 @@ export class TimelineComponent implements OnInit {
             .attr('width', width)
             .attr('height', height);
 
-
         // plots
         let plotMargins = {
             top: 30,
@@ -65,6 +64,18 @@ export class TimelineComponent implements OnInit {
         
         let plotWidth = width - plotMargins.left - plotMargins.right;
         let plotHeight = height - plotMargins.top - plotMargins.bottom;
+
+        // points
+        svg.append("defs")
+            .append("clipPath")
+            .attr("id", "points-clip")
+            .append("rect")
+            .attr("width", plotWidth)
+            .attr("height", plotHeight);
+
+        this.pointsGroup = plotGroup.append('g')
+            .classed('points', true)
+            .attr("clip-path", "url(#points-clip)");
 
 
         // x axis
@@ -89,10 +100,26 @@ export class TimelineComponent implements OnInit {
             .classed('axis', true)
             .call(this.yAxis);
 
+            
+        // Zoom
+        let zoom = d3.zoom()
+            .scaleExtent([1, 32])
+            .translateExtent([[0, 0], [width, height]])
+            .extent([[0, 0], [width, height]])
+            .on("zoom", () => { this.zoomed() }); 
 
-        // points
-        this.pointsGroup = plotGroup.append('g')
-            .classed('points', true);
+        svg.call(zoom);
+    }
+
+    public zoomed() {
+        let xScaleUpdated = d3.event.transform.rescaleX(this.xScale);
+        this.xAxisGroup.call(this.xAxis.scale(xScaleUpdated));
+        
+        this.pointsGroup
+            .selectAll('.points')
+            .attr('transform', (data) => {
+                return `translate(${xScaleUpdated(data.date)}, ${this.yScale(data.score)})`;
+            });
     }
 
     protected reloadData() {
@@ -103,8 +130,6 @@ export class TimelineComponent implements OnInit {
                 score: Math.floor(Math.random()*500)
             }
         }); 
-
-        console.log(prepared);
         
         // axis
         this.xScale.domain(d3.extent(prepared, d => d.date)).nice();
@@ -113,7 +138,7 @@ export class TimelineComponent implements OnInit {
         this.yScale.domain(d3.extent(prepared, d => d.score)).nice();
         this.yAxisGroup.transition().call(this.yAxis);
         
-        var dataBound = this.pointsGroup.selectAll('.post').data(prepared);
+        let dataBound = this.pointsGroup.selectAll('.points').data(prepared);
     
         // delete extra points
         dataBound
@@ -121,10 +146,10 @@ export class TimelineComponent implements OnInit {
             .remove();
 
         // add new points
-        var enterSelection = dataBound
+        let enterSelection = dataBound
             .enter()
             .append('g')
-            .classed('post', true);
+            .classed('points', true);
     
         // update all existing points
         enterSelection.merge(dataBound)
@@ -141,7 +166,7 @@ export class TimelineComponent implements OnInit {
     }
     
     public reloadHandler() {
-        this.reloadData();
+        //this.reloadData();
     }
 }
  
