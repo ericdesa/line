@@ -17,9 +17,11 @@ import { TaskTime } from '../models/task-time';
 })
 export class TimelineComponent implements OnInit {
 
+    protected svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>;
     protected pointsGroup: any;
     protected xScale: d3.ScaleTime<number, number>;
     protected xAxis: d3.Axis<d3.AxisDomain>;
+    protected zoom: d3.ZoomBehavior<Element, {}>;
 
     protected gui: dat.GUI;
 
@@ -49,6 +51,8 @@ export class TimelineComponent implements OnInit {
         let svg = d3.select('app-timeline svg')
             .attr('width', width)
             .attr('height', height);
+
+        this.svg = svg;
 
         // data
         let data: Task[] = this.projectService.projects.map((d) => d.tasks).reduce((prev, cur) => cur);
@@ -163,12 +167,24 @@ export class TimelineComponent implements OnInit {
         
         // Zoom
         let zoom = d3.zoom()
-            //.scaleExtent([1, 32])
-            .translateExtent([[0, 0], [width, height]])
-            .extent([[0, 0], [width, height]])
-            .on("zoom", () => { this.zoomHandler() }); 
+            .scaleExtent([1, 10000])
+            .translateExtent([[0, 0], [width-titleWidth, height]])
+            .extent([[0, 0], [width-titleWidth, height]])
 
+        zoom.on("zoom", () => { this.zoomHandler() }); 
         svg.call(zoom);
+
+        this.zoom = zoom;
+        (window as any).zoom = this.zoom;
+
+        d3.select("input")
+            .datum({})
+            .attr("type", "range")
+            .attr("value", this.zoom.scaleExtent()[0])
+            .attr("min", this.zoom.scaleExtent()[0])
+            .attr("max", this.zoom.scaleExtent()[1])
+            .attr("step", (this.zoom.scaleExtent()[1] - this.zoom.scaleExtent()[0]) / 100)
+            .on("input", this.slided.bind(this));
 
         d3.selectAll('.line-timeline-time')
             .on("mouseover", function (data: any) {
@@ -188,7 +204,15 @@ export class TimelineComponent implements OnInit {
             })
     }
 
+    public slided() {
+        this.zoom.scaleTo(d3.select("svg"), d3.select("input").property("value"));
+        let xNow = this.xScale(new Date());
+        this.zoom.translateTo(d3.select("svg"), xNow, 0);
+    }
+
     public zoomHandler() {
+        d3.select("input").attr("value", d3.event.transform.k)
+
         let xScaleUpdated = d3.event.transform.rescaleX(this.xScale);
         d3.select('app-timeline svg .axis')
             .call(this.xAxis.scale(xScaleUpdated));
