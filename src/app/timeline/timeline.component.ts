@@ -25,7 +25,7 @@ export class TimelineComponent implements OnInit {
 
     protected gui: dat.GUI;
 
-    @ViewChild('container') container: ElementRef;
+    @ViewChild('slider') slider: ElementRef;
 
     constructor(public renderer2: Renderer2, public projectService: ProjectService) {
 
@@ -211,7 +211,7 @@ export class TimelineComponent implements OnInit {
     }
 
     public zoomHandler() {
-        d3.select("input").attr("value", d3.event.transform.k)
+        this.slider.nativeElement.value = d3.event.transform.k;
 
         let xScaleUpdated = d3.event.transform.rescaleX(this.xScale);
         d3.select('app-timeline svg .axis')

@@ -1,6 +1,5 @@
 import { Task } from "./task";
 import { TaskTime } from "./task-time";
-import { TimeEventType } from "./time-event";
 
 export class Project {
 
