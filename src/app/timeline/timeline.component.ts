@@ -4,6 +4,11 @@ import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/co
 import dat from 'dat.gui'
 
 import * as d3 from 'd3';
+import { ProjectLine } from './project-line';
+import { Project } from '../models/project';
+import { Task } from '../models/task';
+import { TaskTime } from '../models/task-time';
+import { TimeEventType } from '../models/time-event';
  
 
 @Component({
@@ -14,13 +19,8 @@ import * as d3 from 'd3';
 export class TimelineComponent implements OnInit {
 
     protected pointsGroup: any;
-    protected xScale: any;
-    protected xAxis: any;
-    protected xAxisGroup: any;
-
-    protected yScale: any;
-    protected yAxis: any;
-    protected yAxisGroup: any;
+    protected xScale: d3.ScaleTime<number, number>;
+    protected xAxis: d3.Axis<d3.AxisDomain>;
 
     protected gui: dat.GUI;
 
@@ -33,11 +33,10 @@ export class TimelineComponent implements OnInit {
     ngOnInit() {
         this.setupDatGui();
         this.setupChart();
-        this.reloadData();
     }
 
     public setupDatGui() {
-        this.gui = new dat.GUI();
+        // this.gui = new dat.GUI();
     }
 
     public setupChart() {
@@ -45,128 +44,153 @@ export class TimelineComponent implements OnInit {
         // container
         const width = 960;
         const height = 480;
+        const lineHeight = 50;
+        const titleWidth = 100;
         
         let svg = d3.select('app-timeline svg')
             .attr('width', width)
             .attr('height', height);
 
-        // plots
-        let plotMargins = {
-            top: 30,
-            bottom: 30,
-            left: 150,
-            right: 30
-        };
+        // data
+        let data: Task[] = this.projectService.projects.map((d) => d.tasks).reduce((prev, cur) => cur);
+        let allDates: Date[] = data
+            .map((task) => task.deadline)
+            .concat(data.map((task) => task.times.map((time) => time.startDate)).reduce((prev, cur) => cur))
+            .concat(data.map((task) => task.times.map((time) => time.endDate)).reduce((prev, cur) => cur))
+            .concat(new Date());
 
-        let plotGroup = svg.append('g')
-            .classed('plot', true)
-            .attr('transform', `translate(${plotMargins.left},${plotMargins.top})`);
+        // scale
+        this.xScale = d3.scaleTime()
+            .domain([d3.min(allDates), d3.max(allDates)])
+            .range([titleWidth, width-titleWidth]);
+
+        // svg
+        let content = svg.append("g");
         
-        let plotWidth = width - plotMargins.left - plotMargins.right;
-        let plotHeight = height - plotMargins.top - plotMargins.bottom;
+        content.selectAll()
+            .data(data, (d: Task) => d.name)
+            .enter()
 
-        // points
+            .append("g")
+            .classed("line", true);
+
+        let lines = content.selectAll(".line");
+
+        // project
+        lines.append("rect")
+            .classed("line-content", true)
+            .attr("width", width)
+            .attr("height", lineHeight)
+            .attr("fill", "transparent")
+            .attr("y", (d, i) => (i * lineHeight));
+            
+        lines.append("rect")
+            .classed("line-separator", true)
+            .attr("width", width)
+            .attr("height", 1)
+            .attr("y", (d, i) => ((i+1) * lineHeight - 1));
+        
+        lines.append("rect")
+            .classed("line-separator", true)
+            .attr("width", 1)
+            .attr("height", lineHeight)
+            .attr("x", titleWidth)
+            .attr("y", (d, i) => (i * lineHeight));
+
+        lines.append("text")
+            .classed("line-project-name", true)
+            .attr("width", titleWidth)
+            .attr("height", lineHeight)
+            .attr("text-anchor", "middle")
+            .attr("x", titleWidth/2)
+            .attr("y", (d, i) => (i * lineHeight + lineHeight/2))
+            .text((d: Task) => d.name);
+
+        // timeline
         svg.append("defs")
             .append("clipPath")
-            .attr("id", "points-clip")
+            .attr("id", "timeline-clip")
             .append("rect")
-            .attr("width", plotWidth)
-            .attr("height", plotHeight);
+            .attr("x",titleWidth)
+            .attr("width", width - titleWidth)
+            .attr("height", height);
 
-        this.pointsGroup = plotGroup.append('g')
-            .classed('points', true)
-            .attr("clip-path", "url(#points-clip)");
+        lines.append("g")
+            .classed("line-timeline", true)
+            .attr("clip-path", "url(#timeline-clip)");
 
+        let timeline = content.selectAll(".line-timeline");
 
-        // x axis
-        this.xScale = d3.scaleTime()
-            .range([0, plotWidth]);
+        timeline.append("rect")
+            .classed("duration", true)
+            .attr("x", (task: Task) => this.xScale(task.firstTaskAt()))
+            .attr("y", (d, i) => (i * lineHeight + lineHeight/2))
+            .attr("width", (task: Task) => this.xScale(task.deadline) - this.xScale(task.firstTaskAt()))
+            .attr("height", 1);
 
+        
+        timeline.selectAll(".line-timeline-time")
+            .data((task: Task) => {
+                return task.times.map((time: TaskTime) => {
+                    return { task: task, time: time }
+                });
+            })
+            .enter()
+            .append("rect")
+            .classed("line-timeline-time", true)
+            .attr("clip-path", "url(#timeline-clip)")
+            .attr("x", (d) => this.xScale(d.time.startDate))
+            .attr("y", (d) => ((data.indexOf(d.task)) * lineHeight + lineHeight/2) - 2)
+            .attr("width", (d) => this.xScale(d.time.endDate) - this.xScale(d.time.startDate))
+            .attr("height", 4);
+        
+
+        // axis
         this.xAxis = d3.axisBottom(this.xScale);
-        this.xAxisGroup = plotGroup.append('g')
-            .classed('x', true)
+        content.append('g')
             .classed('axis', true)
-            .attr('transform', `translate(${0},${plotHeight})`)
+            .attr('transform', `translate(0, ${lineHeight * data.length})`)
             .call(this.xAxis);
-
-
-        // y axis
-        this.yScale = d3.scaleLinear()
-            .range([plotHeight, 0]);
-
-        this.yAxis = d3.axisLeft(this.yScale);
-        this.yAxisGroup = plotGroup.append('g')
-            .classed('y', true)
-            .classed('axis', true)
-            .call(this.yAxis);
-
-            
+        
         // Zoom
         let zoom = d3.zoom()
-            .scaleExtent([1, 32])
+            //.scaleExtent([1, 32])
             .translateExtent([[0, 0], [width, height]])
             .extent([[0, 0], [width, height]])
-            .on("zoom", () => { this.zoomed() }); 
+            .on("zoom", () => { this.zoomHandler() }); 
 
         svg.call(zoom);
+
+        d3.selectAll('.line-timeline-time')
+            .on("mouseover", function (data: any) {
+
+                var xPosition = parseFloat(d3.select(this).attr("x")) + parseFloat(d3.select(this).attr("width")) / 2; 
+                var yPosition = parseFloat(d3.select(this).attr("y"));
+
+                d3.select("#tooltip")
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .classed("hidden", false)
+                    .select("#value")
+                    .text(data.time.formattedDuration());
+            })
+            .on("mouseout", (data) =>{
+                d3.select("#tooltip").classed("hidden", true);
+            })
     }
 
-    public zoomed() {
+    public zoomHandler() {
         let xScaleUpdated = d3.event.transform.rescaleX(this.xScale);
-        this.xAxisGroup.call(this.xAxis.scale(xScaleUpdated));
+        d3.select('app-timeline svg .axis')
+            .call(this.xAxis.scale(xScaleUpdated));
         
-        this.pointsGroup
-            .selectAll('.points')
-            .attr('transform', (data) => {
-                return `translate(${xScaleUpdated(data.date)}, ${this.yScale(data.score)})`;
-            });
-    }
+        d3.selectAll('app-timeline svg .duration')
+            .attr("x", (task: Task) => xScaleUpdated(task.firstTaskAt()))
+            .attr("width", (task: Task) => xScaleUpdated(task.lastTaskAt()) - xScaleUpdated(task.firstTaskAt()));
 
-    protected reloadData() {
-        // data
-        let prepared = new Array(15).fill(0).map(() => {
-            return {
-                date: this.randomDate(new Date(2012, 0, 1), new Date()),
-                score: Math.floor(Math.random()*500)
-            }
-        }); 
-        
-        // axis
-        this.xScale.domain(d3.extent(prepared, d => d.date)).nice();
-        this.xAxisGroup.transition().call(this.xAxis);
-        
-        this.yScale.domain(d3.extent(prepared, d => d.score)).nice();
-        this.yAxisGroup.transition().call(this.yAxis);
-        
-        let dataBound = this.pointsGroup.selectAll('.points').data(prepared);
-    
-        // delete extra points
-        dataBound
-            .exit()
-            .remove();
-
-        // add new points
-        let enterSelection = dataBound
-            .enter()
-            .append('g')
-            .classed('points', true);
-    
-        // update all existing points
-        enterSelection.merge(dataBound)
-		    .transition()
-            .attr('transform', (d, i) => `translate(${this.xScale(d.date)}, ${this.yScale(d.score)})`);
-
-        enterSelection.append('circle')
-            .attr('r', 2)
-            .style('fill', 'red');
-    }
-
-    private randomDate(start: Date, end: Date) {
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-    }
-    
-    public reloadHandler() {
-        //this.reloadData();
+        d3.selectAll('app-timeline svg .line-timeline-time')
+            .attr("x", (d: any) => xScaleUpdated(d.time.startDate))
+            .attr("width", (d: any) => xScaleUpdated(d.time.endDate) - xScaleUpdated(d.time.startDate));
     }
 }
  

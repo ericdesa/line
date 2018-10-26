@@ -34,30 +34,14 @@ export class Project {
         let task = new Task(name, new Date(deadlineDateString), nbDays);
 
         let day = 60 * 60 * 24 * 1000;
-        let previousState = TimeEventType.Off;
 
         let startDate = new Date(startDateString);
         for (let i = 0; i <= nbDays; i++) {
-            let timeStart = new TaskTime();
-            timeStart.date = new Date(startDate.getTime() + day * i);
-            task.times.push(timeStart);
-
-            if (i === 0 || i === nbDays / 2) {
-                timeStart.type = TimeEventType.On;
-            }
-            else if (i === nbDays / 2 + 1 || i === nbDays) {
-                timeStart.type = TimeEventType.Off;
-            }
-
-            if (previousState !== timeStart.type) {
-                let previous = new TaskTime();
-                let delta = -day / 2;
-                previous.date = new Date(timeStart.date.getTime() + delta);
-                previous.type = previousState;
-                task.times.push(previous);
-            }
-
-            previousState = timeStart.type;
+            let time = new TaskTime();
+            task.times.push(time);
+            
+            time.startDate = new Date(startDate.getTime() + day * i);
+            time.endDate = new Date(time.startDate.getTime() + (5*60*60*1000));
         }
 
         return task;

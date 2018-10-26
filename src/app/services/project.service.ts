@@ -10,8 +10,4 @@ export class ProjectService {
 
   constructor() { }
 
-  public getPositions(): any[] {
-    return [];
-  }
-
 }
