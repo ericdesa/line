@@ -4,11 +4,10 @@ import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/co
 import dat from 'dat.gui'
 
 import * as d3 from 'd3';
-import { ProjectLine } from './project-line';
-import { Project } from '../models/project';
+import * as moment from 'moment';
+
 import { Task } from '../models/task';
 import { TaskTime } from '../models/task-time';
-import { TimeEventType } from '../models/time-event';
  
 
 @Component({
@@ -57,7 +56,7 @@ export class TimelineComponent implements OnInit {
             .map((task) => task.deadline)
             .concat(data.map((task) => task.times.map((time) => time.startDate)).reduce((prev, cur) => cur))
             .concat(data.map((task) => task.times.map((time) => time.endDate)).reduce((prev, cur) => cur))
-            .concat(new Date());
+            .concat(moment().add(7, "days").toDate());
 
         // scale
         this.xScale = d3.scaleTime()
@@ -144,6 +143,16 @@ export class TimelineComponent implements OnInit {
             .attr("width", (d) => this.xScale(d.time.endDate) - this.xScale(d.time.startDate))
             .attr("height", 4);
         
+        // now
+        let xNow = this.xScale(new Date());
+        content.append("line")
+            .classed("now-line", true)
+            .attr("stroke-dasharray", "4, 6")
+            .attr("stroke", "red")
+            .attr("x1", xNow)
+            .attr("y1", 0)
+            .attr("x2", xNow)
+            .attr("y2", lineHeight * data.length);
 
         // axis
         this.xAxis = d3.axisBottom(this.xScale);
@@ -191,6 +200,12 @@ export class TimelineComponent implements OnInit {
         d3.selectAll('app-timeline svg .line-timeline-time')
             .attr("x", (d: any) => xScaleUpdated(d.time.startDate))
             .attr("width", (d: any) => xScaleUpdated(d.time.endDate) - xScaleUpdated(d.time.startDate));
+
+        let xNow = xScaleUpdated(new Date());
+        d3.selectAll('app-timeline svg .now-line')
+            .attr("x1", xNow)
+            .attr("x2", xNow);
+
     }
 }
  
