@@ -1,13 +1,20 @@
 import { Injectable } from '@angular/core';
+import { JsonConvert } from 'json2typescript';
+
 import { Project } from '../models/project';
+import mocks from '../../assets/mocks/projects.json';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
 
-  public projects: Project[] = Project.mock();
+  public projects: Project[] = [];
 
-  constructor() { }
+  constructor() { 
+    let jsonConvert = new JsonConvert();
+    this.projects = jsonConvert.deserializeArray(mocks.projects, Project);
+  }
 
-}
+} 
