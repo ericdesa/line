@@ -29,9 +29,10 @@ export class ProjectsGroup {
         let offset = 0;
 
         for(let project of projects) {
-            let group = this.group.append('g');
+            let group = this.group.append('g')
+                .attr("transform", `translate(0, ${offset})`);
+                
             group.append('rect')
-                .attr("transform", `translate(0, ${offset})`)
                 .attr('fill', '#f6f8f8')
                 .attr('stroke', '#e9ebeb')
                 .attr('stroke-width', '1')
