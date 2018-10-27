@@ -1,5 +1,5 @@
 import { JsonObject, JsonProperty } from "json2typescript";
-import { DateConverter } from "./date.converter";
+import { DateConverter } from "../utils/date.converter";
 
 @JsonObject("Activity")
 export class Activity {
