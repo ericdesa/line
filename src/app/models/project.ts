@@ -14,11 +14,21 @@ export class Project {
     @JsonProperty("activities", [Activity]) public activities: Activity[] = undefined;
     @JsonProperty("comments", [Comment]) public comments: Comment[] = undefined;
 
+    public getStartDate(): Date {
+        let allActivitiesStartDates = this.activities.map((activity) => activity.start);
+        return d3.min(allActivitiesStartDates);
+    }
+
+    public getStopDate(): Date {
+        let allActivitiesStopDates = this.activities.map((activity) => activity.stop).concat(this.deadline);
+        return d3.max(allActivitiesStopDates);
+    }
+
     public getDomaine(): Date[] {
         let allCommentsDates = this.comments.map((comment) => comment.date);
-        let allActivitiesStartDates = this.activities.map((activity) => activity.start);
-        let allActivitiesStopDates = this.activities.map((activity) => activity.stop);
-        let allDates = allCommentsDates.concat(allActivitiesStartDates).concat(allActivitiesStopDates);
+        let activitiesStartDate = this.getStartDate();
+        let activitiesStopDate = this.getStopDate();
+        let allDates = allCommentsDates.concat([activitiesStartDate, activitiesStopDate]);
         let domaine = [d3.min(allDates), d3.max(allDates)];
         return domaine;
     }

@@ -28,7 +28,7 @@ export class TimelineComponent implements OnInit {
 
         let axis = new AxisGroup(svg, projects);
         let projectsGroup = new ProjectsGroup(svg, projects);
-        let timelineGroup = new TimelinesGroup(svg, projects);
+        let timelineGroup = new TimelinesGroup(svg, projects, axis);
     }
 }
  
